@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuova Richiesta Instagram — Le Gioie di Giuliana Paganoni</title>
+<style>
+  :root{
+    --rose: #b8895f;
+    --rose-dark: #8a6244;
+    --bg: #fdf8f4;
+    --card: #ffffff;
+    --text: #3a2f28;
+    --muted: #8a7c72;
+    --border: #e8ddd2;
+    --success: #4b7a4f;
+    --success-bg: #eaf3ea;
+    --error: #a94442;
+    --error-bg: #fbeaea;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    padding: 24px 16px 60px;
+  }
+  .wrap{ width:100%; max-width: 560px; }
+  header{ text-align:center; margin-bottom: 24px; }
+  header h1{
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--rose-dark);
+    font-weight: 700;
+  }
+  header p{ margin:0; color: var(--muted); font-size: 14px; }
+  .card{
+    background: var(--card);
+    border-radius: 18px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 24px rgba(138,98,68,0.08);
+    border: 1px solid var(--border);
+  }
+  label{
+    display:block;
+    font-weight:600;
+    font-size: 15px;
+    margin: 20px 0 8px;
+  }
+  label.first{ margin-top:0; }
+  input[type="text"], select, textarea{
+    width:100%;
+    padding: 14px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    font-size: 16px;
+    font-family: inherit;
+    background:#fff;
+    color: var(--text);
+  }
+  input[type="text"]:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color: var(--rose);
+  }
+  textarea{ min-height: 90px; resize: vertical; }
+  .hint{ font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .type-toggle{ display:flex; gap:10px; margin-top: 4px; }
+  .type-toggle button{
+    flex:1;
+    padding: 14px 8px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background:#fff;
+    font-size: 15px;
+    font-weight:600;
+    color: var(--muted);
+    cursor:pointer;
+  }
+  .type-toggle button.active{
+    border-color: var(--rose);
+    background: #fbeee2;
+    color: var(--rose-dark);
+  }
+  .submit-btn{
+    width:100%;
+    margin-top: 28px;
+    padding: 16px;
+    border-radius: 14px;
+    border:none;
+    background: var(--rose);
+    color:#fff;
+    font-size: 17px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .submit-btn:disabled{ opacity:0.6; cursor:default; }
+  .submit-btn:active:not(:disabled){ background: var(--rose-dark); }
+  .msg{
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight:600;
+    display:none;
+  }
+  .msg.show{ display:block; }
+  .msg.success{ background: var(--success-bg); color: var(--success); }
+  .msg.error{ background: var(--error-bg); color: var(--error); }
+  footer{ text-align:center; margin-top: 20px; }
+  footer a{ color: var(--muted); font-size: 13px; text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Nuova Richiesta Instagram</h1>
+    <p>Le Gioie di Giuliana Paganoni</p>
+  </header>
+
+  <div class="card">
+    <form id="orderForm">
+      <label class="first" for="cliente">Nome del cliente</label>
+      <input type="text" id="cliente" placeholder="Es. Mario Rossi" required>
+
+      <label for="prodotto">Prodotto richiesto</label>
+      <select id="prodotto" required>
+        <option value="" disabled selected>Scegli dal catalogo…</option>
+      </select>
+      <div class="hint">Se il prodotto non è in lista, scegli "Altro" e scrivilo nel testo qui sotto.</div>
+
+      <label>Che tipo di richiesta è?</label>
+      <div class="type-toggle">
+        <button type="button" data-value="Ordine confermato" class="active">✅ Ordine confermato</button>
+        <button type="button" data-value="Richiesta info">💬 Richiesta info</button>
+      </div>
+
+      <label for="testo">Cosa ha scritto il cliente</label>
+      <textarea id="testo" placeholder="Copia qui il messaggio del cliente, es: 'Vorrei il braccialetto nero, faccio il bonifico'" required></textarea>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Salva Richiesta</button>
+
+      <div class="msg" id="msgBox"></div>
+    </form>
+  </div>
+
+  <footer>
+    <span>Il riepilogo ordini sarà disponibile qui a breve.</span>
+  </footer>
+</div>
+
+<script>
+  const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/28495835/46qpy97/";
+
+  const CATALOG = [
+    "Anelli in cammeo e caucciù",
+    "Anelli in Corallo e bioresina",
+    "Anelli Morositas",
+    "Anello - Cervo",
+    "Anello - Coniglio",
+    "Anello - Fiore di ciliegio",
+    "Anello - Gallo",
+    "Anello cammeo tondo",
+    "Anello da mignolo - Bassotto",
+    "Anello da mignolo - Ranocchietta porta fortuna",
+    "Anello doppio",
+    "Anello pesciolino",
+    "Anello quadrato Cerchio",
+    "Braccialetti di Velluto con Cammeo (Sport)",
+    "Braccialetto di vellutto con placchetta in argento incisa",
+    "Bracciali in Velluto con Cammeo",
+    "Buono Regalo \"Le Gioie di Giuliana Paganoni\"",
+    "Cammei fiori di ciliegio",
+    "Choker Petits Délices",
+    "Ghiaccioli",
+    "L'Ovetto",
+    "La Cozza",
+    "Orecchini fiore",
+    "Orecchini in cammeo",
+    "Orecchini petits délices",
+    "Orecchini Quadrati",
+    "Orecchino Cammeo Fiori",
+    "Orecchino Cammeo Snoopy",
+    "Orecchino in cammeo - carpa koi",
+    "Orecchino Lucy",
+    "Orecchino rosa",
+    "Pesciolini",
+    "Surf",
+    "Toile de jouy",
+    "Altro (scrivi nel testo)"
+  ];
+
+  const select = document.getElementById("prodotto");
+  CATALOG.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  let tipoScelto = "Ordine confermato";
+  document.querySelectorAll(".type-toggle button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".type-toggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      tipoScelto = btn.dataset.value;
+    });
+  });
+
+  function formatDataItaliana(d){
+    const gg = String(d.getDate()).padStart(2,"0");
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const aaaa = d.getFullYear();
+    return `${gg}/${mm}/${aaaa}`;
+  }
+
+  const form = document.getElementById("orderForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const msgBox = document.getElementById("msgBox");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msgBox.className = "msg";
+    msgBox.textContent = "";
+
+    const cliente = document.getElementById("cliente").value.trim();
+    const prodotto = document.getElementById("prodotto").value;
+    const testo = document.getElementById("testo").value.trim();
+
+    if(!cliente || !prodotto || !testo){
+      msgBox.textContent = "Compila tutti i campi prima di salvare.";
+      msgBox.className = "msg error show";
+      return;
+    }
+
+    const payload = {
+      cliente: cliente,
+      prodotto: prodotto,
+      tipo: tipoScelto,
+      testo: testo,
+      data: formatDataItaliana(new Date())
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Salvataggio in corso…";
+
+    try{
+      // Content-Type text/plain evita il preflight CORS: Zapier legge comunque il JSON.
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      });
+
+      if(res.ok){
+        msgBox.textContent = "✅ Richiesta salvata! Puoi inserirne un'altra.";
+        msgBox.className = "msg success show";
+        form.reset();
+        document.querySelectorAll(".type-toggle button").forEach(b => b.classList.remove("active"));
+        document.querySelector('.type-toggle button[data-value="Ordine confermato"]').classList.add("active");
+        tipoScelto = "Ordine confermato";
+      } else {
+        throw new Error("Risposta non valida dal server");
+      }
+    } catch(err){
+      msgBox.textContent = "❌ Errore durante il salvataggio. Controlla la connessione e riprova.";
+      msgBox.className = "msg error show";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Salva Richiesta";
+    }
+  });
+</script>
+
+</body>
+</html>
