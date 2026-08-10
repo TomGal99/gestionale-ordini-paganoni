@@ -192,7 +192,8 @@
 </div>
 
 <script>
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/1ltcYqLz39b3zSP4FeCAdvhnfwVMEKZpB6YDTft0Ye1c/export?format=csv&gid=1648965807";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c/export?format=csv&gid=1648965807";
+  // ID verificato: 1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c (lowercase "e" in VMeK)
 
   function parseCSV(text){
     const rows = [];
@@ -321,11 +322,26 @@
     render();
   });
 
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function fetchCSVWithRetry(maxAttempts){
+    let lastErr;
+    for(let attempt = 1; attempt <= maxAttempts; attempt++){
+      try{
+        const res = await fetch(CSV_URL, { cache: "no-store" });
+        if(res.ok) return await res.text();
+        lastErr = new Error("HTTP " + res.status);
+      } catch(err){
+        lastErr = err;
+      }
+      if(attempt < maxAttempts) await sleep(1200 * attempt);
+    }
+    throw lastErr;
+  }
+
   async function loadOrders(){
     try{
-      const res = await fetch(CSV_URL);
-      if(!res.ok) throw new Error("Errore nel caricamento del foglio");
-      const text = await res.text();
+      const text = await fetchCSVWithRetry(4);
       const rows = parseCSV(text);
       allOrders = rowsToObjects(rows);
       updateStats();
