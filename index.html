@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nuova Richiesta Instagram — Le Gioie di Giuliana Paganoni</title>
+<title>Riepilogo Ordini — Le Gioie di Giuliana Paganoni</title>
 <style>
   :root{
     --rose: #b8895f;
@@ -15,6 +15,8 @@
     --border: #e8ddd2;
     --success: #4b7a4f;
     --success-bg: #eaf3ea;
+    --warn: #a97b22;
+    --warn-bg: #fbf1de;
     --error: #a94442;
     --error-bg: #fbeaea;
     --info: #6a5a9e;
@@ -27,12 +29,17 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    display:flex;
-    justify-content:center;
     padding: 24px 16px 60px;
   }
-  .wrap{ width:100%; max-width: 560px; }
-  header{ text-align:center; margin-bottom: 24px; }
+  .wrap{ width:100%; max-width: 780px; margin: 0 auto; }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
   header h1{
     font-size: 22px;
     margin: 0 0 4px;
@@ -40,401 +47,451 @@
     font-weight: 700;
   }
   header p{ margin:0; color: var(--muted); font-size: 14px; }
-  .card{
-    background: var(--card);
-    border-radius: 18px;
-    padding: 28px 24px;
-    box-shadow: 0 4px 24px rgba(138,98,68,0.08);
-    border: 1px solid var(--border);
+  .new-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--rose);
+    color:#fff;
+    font-weight:700;
+    font-size: 14px;
+    text-decoration:none;
+    white-space:nowrap;
+    box-shadow: 0 3px 10px rgba(138,98,68,0.25);
+  }
+  .new-btn:active{ background: var(--rose-dark); }
+
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
     margin-bottom: 20px;
   }
-  .card h2{
-    margin: 0 0 6px;
-    font-size: 17px;
-    color: var(--rose-dark);
+  .stat{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align:center;
   }
-  .card .subtitle{ margin: 0 0 16px; font-size: 13px; color: var(--muted); }
-  label{
-    display:block;
-    font-weight:600;
-    font-size: 15px;
-    margin: 20px 0 8px;
+  .stat .num{ font-size: 22px; font-weight:800; color: var(--rose-dark); }
+  .stat .lbl{ font-size: 12px; color: var(--muted); margin-top:2px; }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
   }
-  label.first{ margin-top:0; }
-  input[type="text"], select, textarea{
-    width:100%;
-    padding: 14px 14px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-    font-size: 16px;
-    font-family: inherit;
-    background:#fff;
-    color: var(--text);
-  }
-  input[type="text"]:focus, select:focus, textarea:focus{
-    outline:none;
-    border-color: var(--rose);
-  }
-  textarea{ min-height: 90px; resize: vertical; }
-  .hint{ font-size: 13px; color: var(--muted); margin-top: 6px; }
-  .type-toggle{ display:flex; gap:10px; margin-top: 4px; }
-  .type-toggle button{
+  .toolbar input[type="text"]{
     flex:1;
-    padding: 14px 8px;
+    min-width: 160px;
+    padding: 12px 14px;
     border-radius: 12px;
     border: 2px solid var(--border);
-    background:#fff;
     font-size: 15px;
+    font-family: inherit;
+  }
+  .toolbar input:focus{ outline:none; border-color: var(--rose); }
+  .chip-group{ display:flex; gap:8px; flex-wrap: wrap; }
+  .chip{
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background:#fff;
+    font-size: 13px;
     font-weight:600;
     color: var(--muted);
     cursor:pointer;
+    white-space: nowrap;
+    transition: border-color .15s, background .15s, color .15s;
   }
-  .type-toggle button.active{
+  .chip.active{
     border-color: var(--rose);
     background: #fbeee2;
     color: var(--rose-dark);
   }
-  .submit-btn{
-    width:100%;
-    margin-top: 28px;
-    padding: 16px;
-    border-radius: 14px;
-    border:none;
+
+  .order-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(138,98,68,0.06);
+  }
+  .order-card.evaso{ opacity: 0.6; }
+  .order-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .order-cliente{ font-size: 17px; font-weight:700; color: var(--text); }
+  .order-data{ font-size: 12px; color: var(--muted); margin-top:2px; }
+  .badge{
+    display:inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight:700;
+    white-space: nowrap;
+  }
+  .badge.confermato{ background: var(--success-bg); color: var(--success); }
+  .badge.info{ background: var(--info-bg); color: var(--info); }
+  .badge.evaso-si{ background: var(--success-bg); color: var(--success); }
+  .badge.evaso-no{ background: var(--warn-bg); color: var(--warn); }
+
+  .order-prodotti{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 8px; }
+  .prodotto-chip{
+    font-size: 13px;
+    font-weight:600;
+    color: var(--rose-dark);
+    background: #fbeee2;
+    border-radius: 999px;
+    padding: 4px 10px;
+  }
+  .order-testo{
+    font-size: 14px;
+    color: var(--text);
+    background: #faf6f2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+  }
+  .order-footer{
+    display:flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .empty, .loading, .error{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .empty .cta{
+    display:inline-block;
+    margin-top: 14px;
+    padding: 12px 20px;
+    border-radius: 12px;
     background: var(--rose);
     color:#fff;
-    font-size: 17px;
+    font-weight:700;
+    text-decoration:none;
+    font-size: 14px;
+  }
+  .error{ color: var(--error); }
+  .error .retry{
+    display:inline-block;
+    margin-top: 12px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid var(--error);
+    background: transparent;
+    color: var(--error);
     font-weight:700;
     cursor:pointer;
-  }
-  .submit-btn:disabled{ opacity:0.6; cursor:default; }
-  .submit-btn:active:not(:disabled){ background: var(--rose-dark); }
-  .msg{
-    margin-top: 18px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight:600;
-    display:none;
-  }
-  .msg.show{ display:block; }
-  .msg.success{ background: var(--success-bg); color: var(--success); }
-  .msg.error{ background: var(--error-bg); color: var(--error); }
-  .msg.info{ background: var(--info-bg); color: var(--info); }
-  footer{ text-align:center; margin-top: 20px; }
-  footer a{ color: var(--rose-dark); font-size: 14px; text-decoration:underline; font-weight:600; }
-
-  .upload-zone{
-    border: 2px dashed var(--border);
-    border-radius: 14px;
-    padding: 22px;
-    text-align:center;
-    cursor:pointer;
-    background:#fffdfb;
-  }
-  .upload-zone:hover{ border-color: var(--rose); }
-  .upload-zone input{ display:none; }
-  .upload-zone .icon{ font-size: 28px; margin-bottom:6px; }
-  .upload-zone .label{ font-weight:600; color: var(--rose-dark); }
-  .upload-zone .sub{ font-size:13px; color: var(--muted); margin-top:4px; }
-  .preview-img{
-    max-width:100%;
-    max-height: 220px;
-    border-radius: 12px;
-    margin-top: 14px;
-    display:block;
+    font-size: 14px;
   }
   .spinner{
     display:inline-block;
-    width:16px; height:16px;
-    border: 2px solid rgba(138,98,68,0.25);
+    width:22px; height:22px;
+    border: 3px solid rgba(138,98,68,0.2);
     border-top-color: var(--rose-dark);
     border-radius:50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right:8px;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
   }
   @keyframes spin{ to{ transform: rotate(360deg); } }
-  .divider{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin: 22px 0 6px;
-    color: var(--muted);
-    font-size: 13px;
+
+  .evaso-btn{
+    border: 2px solid var(--border);
+    background:#fff;
+    color: var(--rose-dark);
+    font-weight:700;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    cursor:pointer;
   }
-  .divider::before, .divider::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background: var(--border);
-  }
+  .evaso-btn:hover{ border-color: var(--rose); }
+  .evaso-btn:disabled{ opacity:.5; cursor:default; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Nuova Richiesta Instagram</h1>
-    <p>Le Gioie di Giuliana Paganoni</p>
+    <div>
+      <h1>📋 Riepilogo Ordini</h1>
+      <p>Le Gioie di Giuliana Paganoni</p>
+    </div>
+    <a class="new-btn" href="nuovo.html">＋ Nuova richiesta</a>
   </header>
 
-  <div class="card">
-    <h2>📷 Carica uno screenshot</h2>
-    <p class="subtitle">Carica la foto della chat Instagram: proviamo a leggerla automaticamente e a compilare i campi qui sotto.</p>
-    <label class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept="image/*">
-      <div class="icon">📎</div>
-      <div class="label">Tocca per scegliere lo screenshot</div>
-      <div class="sub">JPG o PNG</div>
-    </label>
-    <img id="previewImg" class="preview-img" style="display:none;">
-    <div class="msg" id="aiMsg"></div>
+  <div class="stats" id="stats" style="display:none;">
+    <div class="stat"><div class="num" id="statTotale">0</div><div class="lbl">Totale</div></div>
+    <div class="stat"><div class="num" id="statDaEvadere">0</div><div class="lbl">Da evadere</div></div>
+    <div class="stat"><div class="num" id="statInfo">0</div><div class="lbl">Richieste info</div></div>
   </div>
 
-  <div class="divider">oppure compila a mano</div>
-
-  <div class="card">
-    <form id="orderForm">
-      <label class="first" for="cliente">Nome del cliente</label>
-      <input type="text" id="cliente" placeholder="Es. Mario Rossi" required>
-
-      <label for="prodotto">Prodotto richiesto</label>
-      <select id="prodotto" required>
-        <option value="" disabled selected>Scegli dal catalogo…</option>
-      </select>
-      <div class="hint">Se il prodotto non è in lista, scegli "Altro" e scrivilo nel testo qui sotto.</div>
-
-      <label>Che tipo di richiesta è?</label>
-      <div class="type-toggle">
-        <button type="button" data-value="Ordine confermato" class="active">✅ Ordine confermato</button>
-        <button type="button" data-value="Richiesta info">💬 Richiesta info</button>
-      </div>
-
-      <label for="testo">Cosa ha scritto il cliente</label>
-      <textarea id="testo" placeholder="Copia qui il messaggio del cliente, es: 'Vorrei il braccialetto nero, faccio il bonifico'" required></textarea>
-
-      <button type="submit" class="submit-btn" id="submitBtn">Salva Richiesta</button>
-
-      <div class="msg" id="msgBox"></div>
-    </form>
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="🔍 Cerca cliente o prodotto...">
+  </div>
+  <div class="chip-group" style="margin-bottom:18px;">
+    <div class="chip active" data-filter="tutti">Tutti</div>
+    <div class="chip" data-filter="da-evadere">Da evadere</div>
+    <div class="chip" data-filter="evasi">Evasi</div>
+    <div class="chip" data-filter="info">Richieste info</div>
   </div>
 
-  <footer>
-    <a href="riepilogo.html">📋 Vai al riepilogo ordini →</a>
-  </footer>
+  <div id="content">
+    <div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>
+  </div>
 </div>
 
 <script>
-  const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/28495835/46qpy97/";
-  const AI_URL = "https://lucky-wildflower-a0ca.tommaso-galdino99.workers.dev/";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c/export?format=csv&gid=1648965807";
+  // ID verificato: 1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c (lowercase "e" in VMeK)
 
-  const CATALOG = [
-    "Anelli in cammeo e caucciù",
-    "Anelli in Corallo e bioresina",
-    "Anelli Morositas",
-    "Anello - Cervo",
-    "Anello - Coniglio",
-    "Anello - Fiore di ciliegio",
-    "Anello - Gallo",
-    "Anello cammeo tondo",
-    "Anello da mignolo - Bassotto",
-    "Anello da mignolo - Ranocchietta porta fortuna",
-    "Anello doppio",
-    "Anello pesciolino",
-    "Anello quadrato Cerchio",
-    "Braccialetti di Velluto con Cammeo (Sport)",
-    "Braccialetto di vellutto con placchetta in argento incisa",
-    "Bracciali in Velluto con Cammeo",
-    "Buono Regalo \"Le Gioie di Giuliana Paganoni\"",
-    "Cammei fiori di ciliegio",
-    "Choker Petits Délices",
-    "Ghiaccioli",
-    "L'Ovetto",
-    "La Cozza",
-    "Orecchini fiore",
-    "Orecchini in cammeo",
-    "Orecchini petits délices",
-    "Orecchini Quadrati",
-    "Orecchino Cammeo Fiori",
-    "Orecchino Cammeo Snoopy",
-    "Orecchino in cammeo - carpa koi",
-    "Orecchino Lucy",
-    "Orecchino rosa",
-    "Pesciolini",
-    "Surf",
-    "Toile de jouy",
-    "Altro (scrivi nel testo)"
-  ];
+  // Da compilare dopo il deploy dell'Apps Script (vedi apps-script.gs) — URL che finisce in /exec.
+  // Finché resta vuoto, il pulsante "Segna come spedito" spiega cosa manca invece di fallire silenziosamente.
+  const APPS_SCRIPT_URL = "";
 
-  const select = document.getElementById("prodotto");
-  CATALOG.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
+  function parseCSV(text){
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
 
-  let tipoScelto = "Ordine confermato";
-  const toggleButtons = document.querySelectorAll(".type-toggle button");
-  toggleButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      toggleButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      tipoScelto = btn.dataset.value;
-    });
-  });
+    for(let i = 0; i < text.length; i++){
+      const c = text[i];
+      const next = text[i+1];
 
-  function setTipo(value){
-    tipoScelto = value;
-    toggleButtons.forEach(b => b.classList.toggle("active", b.dataset.value === value));
-  }
-
-  function formatDataItaliana(d){
-    const gg = String(d.getDate()).padStart(2,"0");
-    const mm = String(d.getMonth()+1).padStart(2,"0");
-    const aaaa = d.getFullYear();
-    return `${gg}/${mm}/${aaaa}`;
-  }
-
-  // ---- Upload screenshot + lettura AI ----
-  const fileInput = document.getElementById("fileInput");
-  const previewImg = document.getElementById("previewImg");
-  const aiMsg = document.getElementById("aiMsg");
-  const uploadZone = document.getElementById("uploadZone");
-
-  function showAiMsg(text, type){
-    aiMsg.textContent = text;
-    aiMsg.className = "msg " + type + " show";
-  }
-
-  function fileToBase64(file){
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result;
-        const base64 = result.substring(result.indexOf(",") + 1);
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function findBestProductMatch(nome){
-    if(!nome) return null;
-    const exact = CATALOG.find(c => c.toLowerCase() === nome.toLowerCase());
-    if(exact) return exact;
-    const partial = CATALOG.find(c => c.toLowerCase().includes(nome.toLowerCase()) || nome.toLowerCase().includes(c.toLowerCase()));
-    if(partial) return partial;
-    return null;
-  }
-
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files[0];
-    if(!file) return;
-
-    previewImg.src = URL.createObjectURL(file);
-    previewImg.style.display = "block";
-
-    aiMsg.innerHTML = '<span class="spinner"></span>Sto leggendo lo screenshot…';
-    aiMsg.className = "msg info show";
-
-    try{
-      const base64 = await fileToBase64(file);
-      const res = await fetch(AI_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mediaType: file.type || "image/jpeg",
-          catalog: CATALOG
-        })
-      });
-
-      const data = await res.json();
-
-      if(!res.ok || data.error){
-        showAiMsg("⚠️ Non sono riuscita a leggere lo screenshot automaticamente. Compila i campi qui sotto a mano.", "error");
-        return;
+      if(inQuotes){
+        if(c === '"' && next === '"'){ field += '"'; i++; }
+        else if(c === '"'){ inQuotes = false; }
+        else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ""; }
+        else if(c === '\r'){ /* skip */ }
+        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+        else { field += c; }
       }
-
-      if(data.cliente) document.getElementById("cliente").value = data.cliente;
-      if(data.testo) document.getElementById("testo").value = data.testo;
-
-      const match = findBestProductMatch(data.prodotto);
-      if(match){
-        select.value = match;
-      } else if (data.prodotto) {
-        select.value = "Altro (scrivi nel testo)";
-      }
-
-      if(data.tipo === "Richiesta info" || data.tipo === "Ordine confermato"){
-        setTipo(data.tipo);
-      }
-
-      showAiMsg("✅ Campi precompilati! Controlla che siano giusti prima di salvare.", "success");
-    } catch(err){
-      showAiMsg("⚠️ Errore durante la lettura dello screenshot. Compila i campi qui sotto a mano.", "error");
     }
-  });
+    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows.filter(r => r.length > 1 || (r.length === 1 && r[0] !== ""));
+  }
 
-  // ---- Salvataggio richiesta ----
-  const form = document.getElementById("orderForm");
-  const submitBtn = document.getElementById("submitBtn");
-  const msgBox = document.getElementById("msgBox");
+  function rowsToObjects(rows){
+    if(rows.length === 0) return [];
+    const headers = rows[0].map(h => h.trim());
+    return rows.slice(1).map(r => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+      return obj;
+    });
+  }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    msgBox.className = "msg";
-    msgBox.textContent = "";
+  function escapeHtml(str){
+    return (str || "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
 
-    const cliente = document.getElementById("cliente").value.trim();
-    const prodotto = document.getElementById("prodotto").value;
-    const testo = document.getElementById("testo").value.trim();
+  function splitProdotti(str){
+    if(!str) return [];
+    return str.split(/[·•]|(?:\s{2,})/).map(s => s.trim()).filter(Boolean);
+  }
 
-    if(!cliente || !prodotto || !testo){
-      msgBox.textContent = "Compila tutti i campi prima di salvare.";
-      msgBox.className = "msg error show";
+  let allOrders = [];
+  let currentFilter = "tutti";
+  let currentSearch = "";
+
+  function render(){
+    const content = document.getElementById("content");
+    let filtered = allOrders.filter(o => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+
+      if(currentFilter === "da-evadere" && (isEvaso || isInfo)) return false;
+      if(currentFilter === "evasi" && !isEvaso) return false;
+      if(currentFilter === "info" && !isInfo) return false;
+
+      if(currentSearch){
+        const hay = ((o.Cliente || "") + " " + (o.Prodotto || "")).toLowerCase();
+        if(!hay.includes(currentSearch.toLowerCase())) return false;
+      }
+      return true;
+    });
+
+    // Più recenti prima (assumendo ordine di inserimento nello sheet). Teniamo l'indice originale
+    // per poter aggiornare allOrders[originalIndex] dopo un "segna come spedito" riuscito.
+    filtered = filtered
+      .map((o, idxInFiltered) => ({ o, origIndex: allOrders.indexOf(o) }))
+      .slice()
+      .reverse();
+
+    if(filtered.length === 0){
+      const isEmptyDb = allOrders.length === 0;
+      content.innerHTML = isEmptyDb
+        ? '<div class="empty">Nessun ordine ancora registrato.<br><a class="cta" href="nuovo.html">＋ Registra la prima richiesta</a></div>'
+        : '<div class="empty">Nessun ordine trovato con questi filtri.</div>';
       return;
     }
 
-    const payload = {
-      cliente: cliente,
-      prodotto: prodotto,
-      tipo: tipoScelto,
-      testo: testo,
-      data: formatDataItaliana(new Date())
-    };
+    content.innerHTML = filtered.map(({ o, origIndex }) => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+      const tipoBadgeClass = isInfo ? "info" : "confermato";
+      const tipoLabel = isInfo ? "💬 Richiesta info" : "✅ Ordine confermato";
+      const evasoBadgeClass = isEvaso ? "evaso-si" : "evaso-no";
+      const evasoLabel = isEvaso ? "✔ Evaso" : "⏳ Da evadere";
+      const prodotti = splitProdotti(o.Prodotto);
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Salvataggio in corso…";
+      return `
+        <div class="order-card ${isEvaso ? 'evaso' : ''}">
+          <div class="order-top">
+            <div>
+              <div class="order-cliente">${escapeHtml(o.Cliente || "Sconosciuto")}</div>
+              <div class="order-data">${escapeHtml(o.Data || "")} · ${escapeHtml(o.Fonte || "")}</div>
+            </div>
+            <span class="badge ${tipoBadgeClass}">${tipoLabel}</span>
+          </div>
+          <div class="order-prodotti">
+            ${prodotti.length
+              ? prodotti.map(p => `<span class="prodotto-chip">🛍️ ${escapeHtml(p)}</span>`).join("")
+              : `<span class="prodotto-chip">🛍️ -</span>`}
+          </div>
+          ${o.TestoOriginale ? `<div class="order-testo">${escapeHtml(o.TestoOriginale)}</div>` : ""}
+          <div class="order-footer">
+            <span class="badge ${evasoBadgeClass}">${evasoLabel}</span>
+            ${!isEvaso ? `<button class="evaso-btn" data-orig-index="${origIndex}">✔ Segna come spedito</button>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    content.querySelectorAll(".evaso-btn").forEach(btn => {
+      btn.addEventListener("click", () => markEvaso(Number(btn.dataset.origIndex), btn));
+    });
+  }
+
+  async function markEvaso(origIndex, btnEl){
+    const o = allOrders[origIndex];
+    if(!o) return;
+
+    if(!APPS_SCRIPT_URL){
+      alert("Funzione non ancora attiva: manca l'URL dell'Apps Script (vedi apps-script.gs e istruzioni di deploy). Chiedi a Tommaso di completare il collegamento.");
+      return;
+    }
+
+    btnEl.disabled = true;
+    btnEl.textContent = "Salvo…";
 
     try{
-      // Content-Type text/plain evita il preflight CORS: Zapier legge comunque il JSON.
-      const res = await fetch(WEBHOOK_URL, {
+      // text/plain evita il preflight CORS, stesso trucco usato per Zapier.
+      const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          data: o.Data,
+          cliente: o.Cliente,
+          prodotto: o.Prodotto,
+          testo: o.TestoOriginale,
+          evaso: true
+        })
       });
 
-      if(res.ok){
-        msgBox.textContent = "✅ Richiesta salvata! Puoi inserirne un'altra.";
-        msgBox.className = "msg success show";
-        form.reset();
-        setTipo("Ordine confermato");
-        previewImg.style.display = "none";
-        aiMsg.className = "msg";
-        fileInput.value = "";
-      } else {
-        throw new Error("Risposta non valida dal server");
+      let result;
+      try{ result = await res.json(); } catch(e){ result = null; }
+
+      if(!res.ok || !result || result.error){
+        const detail = result && result.error ? ` (${result.error})` : "";
+        alert("Non sono riuscita ad aggiornare il foglio" + detail + ". Riprova o aggiorna a mano su Google Sheet.");
+        btnEl.disabled = false;
+        btnEl.textContent = "✔ Segna come spedito";
+        return;
       }
+
+      // Aggiornamento ottimistico locale, evita di rifare tutto il fetch CSV.
+      allOrders[origIndex] = { ...o, Evaso: "Si" };
+      updateStats();
+      render();
     } catch(err){
-      msgBox.textContent = "❌ Errore durante il salvataggio. Controlla la connessione e riprova.";
-      msgBox.className = "msg error show";
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Salva Richiesta";
+      alert("Errore di connessione. Riprova.");
+      btnEl.disabled = false;
+      btnEl.textContent = "✔ Segna come spedito";
     }
+  }
+
+  function updateStats(){
+    const total = allOrders.length;
+    const daEvadere = allOrders.filter(o => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+      return !isEvaso && !isInfo;
+    }).length;
+    const info = allOrders.filter(o => (o.Tipo || "") === "Richiesta info").length;
+
+    document.getElementById("statTotale").textContent = total;
+    document.getElementById("statDaEvadere").textContent = daEvadere;
+    document.getElementById("statInfo").textContent = info;
+    document.getElementById("stats").style.display = "grid";
+  }
+
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentFilter = chip.dataset.filter;
+      render();
+    });
   });
+
+  document.getElementById("searchBox").addEventListener("input", (e) => {
+    currentSearch = e.target.value;
+    render();
+  });
+
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function fetchCSVWithRetry(maxAttempts){
+    let lastErr;
+    for(let attempt = 1; attempt <= maxAttempts; attempt++){
+      try{
+        const res = await fetch(CSV_URL, { cache: "no-store" });
+        if(res.ok) return await res.text();
+        lastErr = new Error("HTTP " + res.status);
+      } catch(err){
+        lastErr = err;
+      }
+      if(attempt < maxAttempts) await sleep(1200 * attempt);
+    }
+    throw lastErr;
+  }
+
+  async function loadOrders(){
+    document.getElementById("content").innerHTML =
+      '<div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>';
+    try{
+      const text = await fetchCSVWithRetry(4);
+      const rows = parseCSV(text);
+      allOrders = rowsToObjects(rows);
+      updateStats();
+      render();
+    } catch(err){
+      document.getElementById("content").innerHTML =
+        '<div class="error">⚠️ Non riesco a caricare gli ordini in questo momento.<br>Controlla la connessione e riprova.<br><button class="retry" onclick="loadOrders()">Riprova</button></div>';
+    }
+  }
+
+  loadOrders();
 </script>
 
 </body>
