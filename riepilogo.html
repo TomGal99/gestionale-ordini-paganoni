@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riepilogo Ordini — Le Gioie di Giuliana Paganoni</title>
+<style>
+  :root{
+    --rose: #b8895f;
+    --rose-dark: #8a6244;
+    --bg: #fdf8f4;
+    --card: #ffffff;
+    --text: #3a2f28;
+    --muted: #8a7c72;
+    --border: #e8ddd2;
+    --success: #4b7a4f;
+    --success-bg: #eaf3ea;
+    --warn: #a97b22;
+    --warn-bg: #fbf1de;
+    --error: #a94442;
+    --error-bg: #fbeaea;
+    --info: #6a5a9e;
+    --info-bg: #efeafb;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .wrap{ width:100%; max-width: 780px; margin: 0 auto; }
+  header{ text-align:center; margin-bottom: 20px; }
+  header h1{
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--rose-dark);
+    font-weight: 700;
+  }
+  header p{ margin:0; color: var(--muted); font-size: 14px; }
+
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align:center;
+  }
+  .stat .num{ font-size: 22px; font-weight:800; color: var(--rose-dark); }
+  .stat .lbl{ font-size: 12px; color: var(--muted); margin-top:2px; }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar input[type="text"]{
+    flex:1;
+    min-width: 160px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    font-size: 15px;
+    font-family: inherit;
+  }
+  .toolbar input:focus{ outline:none; border-color: var(--rose); }
+  .chip-group{ display:flex; gap:8px; flex-wrap: wrap; }
+  .chip{
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background:#fff;
+    font-size: 13px;
+    font-weight:600;
+    color: var(--muted);
+    cursor:pointer;
+    white-space: nowrap;
+  }
+  .chip.active{
+    border-color: var(--rose);
+    background: #fbeee2;
+    color: var(--rose-dark);
+  }
+
+  .order-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(138,98,68,0.06);
+  }
+  .order-card.evaso{ opacity: 0.6; }
+  .order-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .order-cliente{ font-size: 17px; font-weight:700; color: var(--text); }
+  .order-data{ font-size: 12px; color: var(--muted); margin-top:2px; }
+  .badge{
+    display:inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight:700;
+    white-space: nowrap;
+  }
+  .badge.confermato{ background: var(--success-bg); color: var(--success); }
+  .badge.info{ background: var(--info-bg); color: var(--info); }
+  .badge.evaso-si{ background: var(--success-bg); color: var(--success); }
+  .badge.evaso-no{ background: var(--warn-bg); color: var(--warn); }
+
+  .order-prodotto{ font-size: 15px; font-weight:600; color: var(--rose-dark); margin-bottom: 6px; }
+  .order-testo{
+    font-size: 14px;
+    color: var(--text);
+    background: #faf6f2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+  }
+  .order-footer{
+    display:flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .empty, .loading, .error{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .error{ color: var(--error); }
+  .spinner{
+    display:inline-block;
+    width:22px; height:22px;
+    border: 3px solid rgba(138,98,68,0.2);
+    border-top-color: var(--rose-dark);
+    border-radius:50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  footer{ text-align:center; margin-top: 24px; }
+  footer a{ color: var(--rose-dark); font-size: 14px; text-decoration:underline; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📋 Riepilogo Ordini</h1>
+    <p>Le Gioie di Giuliana Paganoni</p>
+  </header>
+
+  <div class="stats" id="stats" style="display:none;">
+    <div class="stat"><div class="num" id="statTotale">0</div><div class="lbl">Totale</div></div>
+    <div class="stat"><div class="num" id="statDaEvadere">0</div><div class="lbl">Da evadere</div></div>
+    <div class="stat"><div class="num" id="statInfo">0</div><div class="lbl">Richieste info</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="🔍 Cerca cliente o prodotto...">
+  </div>
+  <div class="chip-group" style="margin-bottom:18px;">
+    <div class="chip active" data-filter="tutti">Tutti</div>
+    <div class="chip" data-filter="da-evadere">Da evadere</div>
+    <div class="chip" data-filter="evasi">Evasi</div>
+    <div class="chip" data-filter="info">Richieste info</div>
+  </div>
+
+  <div id="content">
+    <div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>
+  </div>
+
+  <footer>
+    <a href="index.html">← Nuova richiesta</a>
+  </footer>
+</div>
+
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/1ltcYqLz39b3zSP4FeCAdvhnfwVMEKZpB6YDTft0Ye1c/export?format=csv&gid=1648965807";
+
+  function parseCSV(text){
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for(let i = 0; i < text.length; i++){
+      const c = text[i];
+      const next = text[i+1];
+
+      if(inQuotes){
+        if(c === '"' && next === '"'){ field += '"'; i++; }
+        else if(c === '"'){ inQuotes = false; }
+        else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ""; }
+        else if(c === '\r'){ /* skip */ }
+        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+        else { field += c; }
+      }
+    }
+    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows.filter(r => r.length > 1 || (r.length === 1 && r[0] !== ""));
+  }
+
+  function rowsToObjects(rows){
+    if(rows.length === 0) return [];
+    const headers = rows[0].map(h => h.trim());
+    return rows.slice(1).map(r => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+      return obj;
+    });
+  }
+
+  function escapeHtml(str){
+    return (str || "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  let allOrders = [];
+  let currentFilter = "tutti";
+  let currentSearch = "";
+
+  function render(){
+    const content = document.getElementById("content");
+    let filtered = allOrders.filter(o => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+
+      if(currentFilter === "da-evadere" && (isEvaso || isInfo)) return false;
+      if(currentFilter === "evasi" && !isEvaso) return false;
+      if(currentFilter === "info" && !isInfo) return false;
+
+      if(currentSearch){
+        const hay = ((o.Cliente || "") + " " + (o.Prodotto || "")).toLowerCase();
+        if(!hay.includes(currentSearch.toLowerCase())) return false;
+      }
+      return true;
+    });
+
+    // Ordina: più recenti prima (assumendo ordine di inserimento nello sheet), non evasi prima
+    filtered = filtered.slice().reverse();
+
+    if(filtered.length === 0){
+      content.innerHTML = '<div class="empty">Nessun ordine trovato.</div>';
+      return;
+    }
+
+    content.innerHTML = filtered.map(o => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+      const tipoBadgeClass = isInfo ? "info" : "confermato";
+      const tipoLabel = isInfo ? "💬 Richiesta info" : "✅ Ordine confermato";
+      const evasoBadgeClass = isEvaso ? "evaso-si" : "evaso-no";
+      const evasoLabel = isEvaso ? "✔ Evaso" : "⏳ Da evadere";
+
+      return `
+        <div class="order-card ${isEvaso ? 'evaso' : ''}">
+          <div class="order-top">
+            <div>
+              <div class="order-cliente">${escapeHtml(o.Cliente || "Sconosciuto")}</div>
+              <div class="order-data">${escapeHtml(o.Data || "")} · ${escapeHtml(o.Fonte || "")}</div>
+            </div>
+            <span class="badge ${tipoBadgeClass}">${tipoLabel}</span>
+          </div>
+          <div class="order-prodotto">🛍️ ${escapeHtml(o.Prodotto || "-")}</div>
+          ${o.TestoOriginale ? `<div class="order-testo">${escapeHtml(o.TestoOriginale)}</div>` : ""}
+          <div class="order-footer">
+            <span class="badge ${evasoBadgeClass}">${evasoLabel}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function updateStats(){
+    const total = allOrders.length;
+    const daEvadere = allOrders.filter(o => {
+      const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
+      const isInfo = (o.Tipo || "") === "Richiesta info";
+      return !isEvaso && !isInfo;
+    }).length;
+    const info = allOrders.filter(o => (o.Tipo || "") === "Richiesta info").length;
+
+    document.getElementById("statTotale").textContent = total;
+    document.getElementById("statDaEvadere").textContent = daEvadere;
+    document.getElementById("statInfo").textContent = info;
+    document.getElementById("stats").style.display = "grid";
+  }
+
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentFilter = chip.dataset.filter;
+      render();
+    });
+  });
+
+  document.getElementById("searchBox").addEventListener("input", (e) => {
+    currentSearch = e.target.value;
+    render();
+  });
+
+  async function loadOrders(){
+    try{
+      const res = await fetch(CSV_URL);
+      if(!res.ok) throw new Error("Errore nel caricamento del foglio");
+      const text = await res.text();
+      const rows = parseCSV(text);
+      allOrders = rowsToObjects(rows);
+      updateStats();
+      render();
+    } catch(err){
+      document.getElementById("content").innerHTML =
+        '<div class="error">⚠️ Non riesco a caricare gli ordini in questo momento.<br>Controlla la connessione e ricarica la pagina.</div>';
+    }
+  }
+
+  loadOrders();
+</script>
+
+</body>
+</html>
