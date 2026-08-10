@@ -500,18 +500,17 @@
   }
 
   async function callAppsScript(o, action){
-    return fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      // text/plain evita il preflight CORS, stesso trucco usato per Zapier.
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({
-        data: o.Data,
-        cliente: o.Cliente,
-        prodotto: o.Prodotto,
-        testo: o.TestoOriginale,
-        action
-      })
+    // GET con parametri nell'URL invece di POST: Apps Script risponde con un redirect 302,
+    // e fetch() per spec trasforma una POST in GET perdendo il corpo quando lo segue —
+    // bug noto, non evitabile lato client. GET non ha questo problema.
+    const params = new URLSearchParams({
+      data: o.Data || "",
+      cliente: o.Cliente || "",
+      prodotto: o.Prodotto || "",
+      testo: o.TestoOriginale || "",
+      action
     });
+    return fetch(APPS_SCRIPT_URL + "?" + params.toString(), { method: "GET" });
   }
 
   async function markEvaso(origIndex, btnEl){

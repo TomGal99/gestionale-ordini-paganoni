@@ -2,33 +2,54 @@
  * Google Apps Script — Web App per gestire gli ordini dalla dashboard
  * (index.html), senza dover aprire il Google Sheet a mano.
  *
- * Azioni supportate (campo "action" nel body POST):
- *   - "evadi"    → imposta Evaso = Si sulla riga trovata
- *   - "elimina"  → cancella del tutto la riga trovata (irreversibile)
+ * NOTA TECNICA: le richieste arrivano via GET (parametri nell'URL), non POST.
+ * Motivo: Apps Script risponde con un redirect 302, e per specifica i browser
+ * (fetch) trasformano automaticamente una POST in GET perdendo il corpo della
+ * richiesta quando seguono quel redirect — bug noto, non evitabile lato client.
+ * GET invece non ha questo problema, quindi tutto passa da lì.
+ *
+ * Parametri GET supportati:
+ *   ?action=evadi|elimina&data=...&cliente=...&prodotto=...&testo=...
  * Se "action" manca, di default fa "evadi" (retrocompatibile).
  *
  * DEPLOY (fallo dall'account Google che possiede il foglio: giuliana.paganoni@gmail.com):
  * 1. Apri il Google Sheet "Richieste Instagram - Le Gioie di Giuliana Paganoni".
  * 2. Estensioni → Apps Script.
  * 3. Cancella il contenuto di Code.gs, incolla questo file.
- * 4. Deploy → Nuova implementazione → tipo "Applicazione web".
- *    - Esegui come: Me (giuliana.paganoni@gmail.com)
- *    - Chi ha accesso: Chiunque
- * 5. Autorizza i permessi richiesti (chiede conferma la prima volta).
- * 6. Copia l'URL della Web App (finisce in /exec) e incollalo in index.html
- *    al posto di APPS_SCRIPT_URL.
- * 7. Se modifichi questo script in futuro, ripeti "Nuova implementazione"
- *    (Gestisci implementazioni → Modifica → Nuova versione) altrimenti l'URL
- *    pubblico continua a servire la versione vecchia.
+ * 4. Deploy → Gestisci implementazioni → icona matita sulla implementazione
+ *    esistente → Versione: Nuova versione → Esegui il deployment.
+ *    (Se non hai ancora nessuna implementazione: Deploy → Nuova implementazione →
+ *    Applicazione web → Esegui come: Me, Chi ha accesso: Chiunque.)
+ * 5. L'URL resta lo stesso di prima (finisce in /exec), non serve aggiornarlo
+ *    su index.html se hai fatto "Nuova versione" su un deployment esistente.
  */
 
 const SHEET_NAME = "Richieste"; // nome del foglio (tab) dentro lo spreadsheet
 const COL_EVASO = "Evaso";
 
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+
+  // Nessun parametro action/data → probabilmente una visita di controllo nel browser.
+  if (!p.data && !p.cliente) {
+    return jsonOut({ ok: true, info: "Web App attiva. Usa i parametri ?action=evadi|elimina&data=...&cliente=...&prodotto=...&testo=..." });
+  }
+
+  return handleRequest(p);
+}
+
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
-    const { data, cliente, prodotto, testo, action } = body;
+    return handleRequest(body);
+  } catch (err) {
+    return jsonOut({ error: String(err) }, 500);
+  }
+}
+
+function handleRequest(p) {
+  try {
+    const { data, cliente, prodotto, testo, action } = p;
 
     if (!data || !cliente) {
       return jsonOut({ error: "Parametri mancanti (data, cliente)" }, 400);
@@ -47,8 +68,6 @@ function doPost(e) {
     const idxTesto = headers.indexOf("TestoOriginale");
     const idxEvaso = headers.indexOf(COL_EVASO);
 
-    // Trova la riga che corrisponde esattamente ai campi passati (match più stringente possibile,
-    // dato che non esiste un ID univoco per riga). Confronta Data+Cliente+Prodotto+TestoOriginale.
     let rowIndex = -1;
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
@@ -71,7 +90,6 @@ function doPost(e) {
       return jsonOut({ ok: true, deleted: true });
     }
 
-    // Default / action === "evadi"
     if (idxEvaso === -1) {
       return jsonOut({ error: "Colonna 'Evaso' non trovata nell'intestazione" }, 500);
     }
@@ -80,10 +98,6 @@ function doPost(e) {
   } catch (err) {
     return jsonOut({ error: String(err) }, 500);
   }
-}
-
-function doGet(e) {
-  return jsonOut({ ok: true, info: "Web App attiva. Usa POST con action=evadi|elimina." });
 }
 
 function jsonOut(obj) {
