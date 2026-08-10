@@ -28,6 +28,15 @@ export default {
       return jsonError("Method not allowed", 405);
     }
 
+    // Il CORS blocca solo le chiamate da browser: chiunque trovi l'URL può comunque
+    // colpirlo con curl/script e consumare le chiamate Azure a pagamento. Controllare
+    // l'header Origin non è una vera autenticazione (si può falsificare da script),
+    // ma blocca gli abusi casuali/scanner automatici — difesa a basso costo, non zero.
+    const origin = request.headers.get("Origin");
+    if (origin !== ALLOWED_ORIGIN) {
+      return jsonError("Richiesta non autorizzata", 403);
+    }
+
     let body;
     try {
       body = await request.json();

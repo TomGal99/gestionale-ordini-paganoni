@@ -200,19 +200,26 @@
   .badge.evaso-si{ background: var(--success-bg); color: var(--success); }
   .badge.evaso-no{ background: var(--warn-bg); color: var(--warn); }
 
-  .order-prodotti{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px; }
-  .prodotto-chip{
-    display:inline-flex;
-    align-items:center;
-    gap:5px;
-    font-size: 13px;
-    font-weight:600;
-    color: var(--rose-dark);
+  .order-prodotti{
     background: var(--rose-light);
-    border-radius: 999px;
-    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    padding: 4px 0;
+    margin-bottom: 10px;
+    overflow:hidden;
   }
-  .prodotto-chip svg{ width:13px; height:13px; flex-shrink:0; }
+  .prodotto-item{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    padding: 7px 13px;
+    font-size: 13.5px;
+    color: var(--rose-dark);
+    line-height:1.4;
+  }
+  .prodotto-item + .prodotto-item{ border-top: 1px solid rgba(138,77,46,0.1); }
+  .prodotto-item svg{ width:14px; height:14px; flex-shrink:0; margin-top:2px; opacity:0.65; }
+  .prodotto-item .qty{ font-weight:700; white-space:nowrap; }
+  .prodotto-item .desc{ font-weight:500; }
   .order-testo{
     font-size: 14px;
     color: var(--text);
@@ -343,12 +350,14 @@
 </div>
 
 <script>
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c/export?format=csv&gid=1648965807";
-  // ID verificato: 1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c (lowercase "e" in VMeK)
-
-  // Da compilare dopo il deploy dell'Apps Script (vedi apps-script.gs) — URL che finisce in /exec.
+  // URL dell'Apps Script (vedi apps-script.gs) — finisce in /exec. Usato sia per leggere
+  // gli ordini (action=list) sia per evadi/riapri/elimina. Il foglio Google può restare
+  // privato: non serve più il CSV pubblico, tutto passa da qui con la chiave sotto.
   // Finché resta vuoto, i bottoni "Evadi"/"Elimina" spiegano cosa manca invece di fallire silenziosamente.
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbZPOrdKLN7V2ms7a9U8EbDb_XTGF4fgkYX9oFHtA1IgCsQrlrO7oKNC5TKTxKkIq_Tg/exec";
+  // Deve combaciare con SHARED_KEY in apps-script.gs — non è vera sicurezza (è codice
+  // pubblico, chiunque la legge da qui), solo un filtro contro abusi/scraping casuali.
+  const APPS_SCRIPT_KEY = "paganoni-gioielli-2026";
 
   const ICONS = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
@@ -359,44 +368,9 @@
     box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
     inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
     alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>'
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>'
   };
-
-  function parseCSV(text){
-    const rows = [];
-    let row = [];
-    let field = "";
-    let inQuotes = false;
-
-    for(let i = 0; i < text.length; i++){
-      const c = text[i];
-      const next = text[i+1];
-
-      if(inQuotes){
-        if(c === '"' && next === '"'){ field += '"'; i++; }
-        else if(c === '"'){ inQuotes = false; }
-        else { field += c; }
-      } else {
-        if(c === '"'){ inQuotes = true; }
-        else if(c === ','){ row.push(field); field = ""; }
-        else if(c === '\r'){ /* skip */ }
-        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
-        else { field += c; }
-      }
-    }
-    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
-    return rows.filter(r => r.length > 1 || (r.length === 1 && r[0] !== ""));
-  }
-
-  function rowsToObjects(rows){
-    if(rows.length === 0) return [];
-    const headers = rows[0].map(h => h.trim());
-    return rows.slice(1).map(r => {
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
-      return obj;
-    });
-  }
 
   function escapeHtml(str){
     return (str || "").replace(/[&<>"']/g, c => ({
@@ -407,6 +381,14 @@
   function splitProdotti(str){
     if(!str) return [];
     return str.split(/[·•]|(?:\s{2,})/).map(s => s.trim()).filter(Boolean);
+  }
+
+  // Se una riga inizia con un pattern tipo "240x4", "70+85", "3", la separiamo
+  // dalla descrizione per allinearle in colonna — pura resa visiva, il dato resta lo stesso.
+  function splitQty(item){
+    const m = item.match(/^([\d]+(?:\s*[x×+]\s*[\d]+)*)\s+(.+)$/i);
+    if(m) return { qty: m[1].replace(/\s+/g,''), desc: m[2] };
+    return { qty: null, desc: item };
   }
 
   let allOrders = [];
@@ -424,7 +406,7 @@
       if(currentFilter === "info" && !isInfo) return false;
 
       if(currentSearch){
-        const hay = ((o.Cliente || "") + " " + (o.Prodotto || "")).toLowerCase();
+        const hay = ((o.Cliente || "") + " " + (o.Prodotto || "") + " " + (o.TestoOriginale || "")).toLowerCase();
         if(!hay.includes(currentSearch.toLowerCase())) return false;
       }
       return true;
@@ -467,14 +449,19 @@
           </div>
           <div class="order-prodotti">
             ${prodotti.length
-              ? prodotti.map(p => `<span class="prodotto-chip">${ICONS.tag}${escapeHtml(p)}</span>`).join("")
-              : `<span class="prodotto-chip">${ICONS.tag}-</span>`}
+              ? prodotti.map(p => {
+                  const { qty, desc } = splitQty(p);
+                  return `<div class="prodotto-item">${ICONS.tag}<span>${qty ? `<span class="qty">${escapeHtml(qty)}</span> ` : ""}<span class="desc">${escapeHtml(desc)}</span></span></div>`;
+                }).join("")
+              : `<div class="prodotto-item">${ICONS.tag}<span class="desc">-</span></div>`}
           </div>
           ${o.TestoOriginale ? `<div class="order-testo">${escapeHtml(o.TestoOriginale)}</div>` : ""}
           <div class="order-footer">
             <span class="badge ${evasoBadgeClass}">${evasoLabel}</span>
             <div class="order-actions">
-              ${!isEvaso ? `<button class="action-btn evadi" data-orig-index="${origIndex}" data-action="evadi">${ICONS.check} Segna spedito</button>` : ""}
+              ${!isEvaso
+                ? `<button class="action-btn evadi" data-orig-index="${origIndex}" data-action="evadi">${ICONS.check} Segna spedito</button>`
+                : `<button class="action-btn evadi" data-orig-index="${origIndex}" data-action="riapri">${ICONS.undo} Riapri</button>`}
               <button class="action-btn elimina" data-orig-index="${origIndex}" data-action="elimina">${ICONS.trash} Elimina</button>
             </div>
           </div>
@@ -486,7 +473,7 @@
       btn.addEventListener("click", () => {
         const idx = Number(btn.dataset.origIndex);
         if(btn.dataset.action === "elimina") deleteOrder(idx, btn);
-        else markEvaso(idx, btn);
+        else setEvasoState(idx, btn, btn.dataset.action);
       });
     });
   }
@@ -508,12 +495,13 @@
       cliente: o.Cliente || "",
       prodotto: o.Prodotto || "",
       testo: o.TestoOriginale || "",
-      action
+      action,
+      key: APPS_SCRIPT_KEY
     });
     return fetch(APPS_SCRIPT_URL + "?" + params.toString(), { method: "GET" });
   }
 
-  async function markEvaso(origIndex, btnEl){
+  async function setEvasoState(origIndex, btnEl, action){
     const o = allOrders[origIndex];
     if(!o || !checkAppsScriptConfigured()) return;
 
@@ -521,7 +509,7 @@
     btnEl.innerHTML = "Salvo…";
 
     try{
-      const res = await callAppsScript(o, "evadi");
+      const res = await callAppsScript(o, action);
       let result; try{ result = await res.json(); } catch(e){ result = null; }
 
       if(!res.ok || !result || result.error){
@@ -531,7 +519,7 @@
         return;
       }
 
-      allOrders[origIndex] = { ...o, Evaso: "Si" };
+      allOrders[origIndex] = { ...o, Evaso: action === "riapri" ? "No" : "Si" };
       updateStats();
       render();
     } catch(err){
@@ -601,13 +589,15 @@
 
   function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-  async function fetchCSVWithRetry(maxAttempts){
+  async function fetchOrdersWithRetry(maxAttempts){
+    const url = APPS_SCRIPT_URL + "?" + new URLSearchParams({ action: "list", key: APPS_SCRIPT_KEY }).toString();
     let lastErr;
     for(let attempt = 1; attempt <= maxAttempts; attempt++){
       try{
-        const res = await fetch(CSV_URL, { cache: "no-store" });
-        if(res.ok) return await res.text();
-        lastErr = new Error("HTTP " + res.status);
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+        if(res.ok && !data.error) return data.orders || [];
+        lastErr = new Error(data.error || ("HTTP " + res.status));
       } catch(err){
         lastErr = err;
       }
@@ -619,10 +609,15 @@
   async function loadOrders(){
     document.getElementById("content").innerHTML =
       `<div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>`;
+
+    if(!APPS_SCRIPT_URL){
+      document.getElementById("content").innerHTML =
+        `<div class="error">${ICONS.alert}<br>Manca il collegamento all'Apps Script (vedi apps-script.gs). La dashboard non può ancora leggere gli ordini.</div>`;
+      return;
+    }
+
     try{
-      const text = await fetchCSVWithRetry(4);
-      const rows = parseCSV(text);
-      allOrders = rowsToObjects(rows);
+      allOrders = await fetchOrdersWithRetry(4);
       updateStats();
       render();
     } catch(err){

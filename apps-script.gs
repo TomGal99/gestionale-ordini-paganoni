@@ -27,15 +27,56 @@
 const SHEET_NAME = "Richieste"; // nome del foglio (tab) dentro lo spreadsheet
 const COL_EVASO = "Evaso";
 
+// Questa Web App è per forza "Chi ha accesso: Chiunque" (serve al browser per chiamarla
+// senza login). Una chiave condivisa nel codice pubblico NON è vera sicurezza (chi legge
+// il sorgente di index.html la trova), ma alza la soglia contro scraping/abusi casuali —
+// difesa a basso costo, non protezione reale. Se la cambi qui, cambiala anche in index.html
+// (costante APPS_SCRIPT_KEY) o le richieste dalla dashboard smettono di funzionare.
+const SHARED_KEY = "paganoni-gioielli-2026";
+
 function doGet(e) {
   const p = (e && e.parameter) || {};
 
+  if (p.action === "list") {
+    return handleList(p);
+  }
+
   // Nessun parametro action/data → probabilmente una visita di controllo nel browser.
   if (!p.data && !p.cliente) {
-    return jsonOut({ ok: true, info: "Web App attiva. Usa i parametri ?action=evadi|elimina&data=...&cliente=...&prodotto=...&testo=..." });
+    return jsonOut({ ok: true, info: "Web App attiva. Usa i parametri ?action=evadi|elimina&data=...&cliente=...&prodotto=...&testo=... oppure ?action=list&key=..." });
   }
 
   return handleRequest(p);
+}
+
+// Restituisce tutti gli ordini in JSON — sostituisce la lettura del CSV pubblico del
+// foglio, così il foglio può tornare privato (Condividi → solo il tuo account) e i dati
+// dei clienti (nomi, indirizzi, IBAN nel testo) non restano leggibili da chiunque trovi
+// il link. Protetto dalla stessa SHARED_KEY delle altre azioni — stesso avvertimento:
+// non è vera autenticazione, solo un filtro contro chi trova il link per caso.
+function handleList(p) {
+  if (p.key !== SHARED_KEY) {
+    return jsonOut({ error: "Non autorizzato" }, 403);
+  }
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    return jsonOut({ error: "Foglio '" + SHEET_NAME + "' non trovato" }, 500);
+  }
+
+  const values = sheet.getDataRange().getValues();
+  if (values.length === 0) {
+    return jsonOut({ orders: [] });
+  }
+
+  const headers = values[0].map(h => String(h).trim());
+  const orders = values.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] === undefined || row[i] === null ? "" : String(row[i]).trim(); });
+    return obj;
+  });
+
+  return jsonOut({ orders });
 }
 
 function doPost(e) {
@@ -49,7 +90,11 @@ function doPost(e) {
 
 function handleRequest(p) {
   try {
-    const { data, cliente, prodotto, testo, action } = p;
+    const { data, cliente, prodotto, testo, action, key } = p;
+
+    if (key !== SHARED_KEY) {
+      return jsonOut({ error: "Non autorizzato" }, 403);
+    }
 
     if (!data || !cliente) {
       return jsonOut({ error: "Parametri mancanti (data, cliente)" }, 400);
@@ -93,8 +138,10 @@ function handleRequest(p) {
     if (idxEvaso === -1) {
       return jsonOut({ error: "Colonna 'Evaso' non trovata nell'intestazione" }, 500);
     }
-    sheet.getRange(rowIndex, idxEvaso + 1).setValue("Si");
-    return jsonOut({ ok: true, row: rowIndex, evaso: "Si" });
+    // "riapri" annulla un "Segna come spedito" fatto per sbaglio; default "evadi" lo imposta.
+    const nuovoValore = action === "riapri" ? "No" : "Si";
+    sheet.getRange(rowIndex, idxEvaso + 1).setValue(nuovoValore);
+    return jsonOut({ ok: true, row: rowIndex, evaso: nuovoValore });
   } catch (err) {
     return jsonOut({ error: String(err) }, 500);
   }
