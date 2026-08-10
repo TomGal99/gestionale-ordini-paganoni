@@ -17,6 +17,8 @@
     --success-bg: #eaf3ea;
     --error: #a94442;
     --error-bg: #fbeaea;
+    --info: #6a5a9e;
+    --info-bg: #efeafb;
   }
   * { box-sizing: border-box; }
   body{
@@ -44,7 +46,14 @@
     padding: 28px 24px;
     box-shadow: 0 4px 24px rgba(138,98,68,0.08);
     border: 1px solid var(--border);
+    margin-bottom: 20px;
   }
+  .card h2{
+    margin: 0 0 6px;
+    font-size: 17px;
+    color: var(--rose-dark);
+  }
+  .card .subtitle{ margin: 0 0 16px; font-size: 13px; color: var(--muted); }
   label{
     display:block;
     font-weight:600;
@@ -110,8 +119,55 @@
   .msg.show{ display:block; }
   .msg.success{ background: var(--success-bg); color: var(--success); }
   .msg.error{ background: var(--error-bg); color: var(--error); }
+  .msg.info{ background: var(--info-bg); color: var(--info); }
   footer{ text-align:center; margin-top: 20px; }
-  footer a{ color: var(--muted); font-size: 13px; text-decoration:underline; }
+  footer a{ color: var(--rose-dark); font-size: 14px; text-decoration:underline; font-weight:600; }
+
+  .upload-zone{
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    text-align:center;
+    cursor:pointer;
+    background:#fffdfb;
+  }
+  .upload-zone:hover{ border-color: var(--rose); }
+  .upload-zone input{ display:none; }
+  .upload-zone .icon{ font-size: 28px; margin-bottom:6px; }
+  .upload-zone .label{ font-weight:600; color: var(--rose-dark); }
+  .upload-zone .sub{ font-size:13px; color: var(--muted); margin-top:4px; }
+  .preview-img{
+    max-width:100%;
+    max-height: 220px;
+    border-radius: 12px;
+    margin-top: 14px;
+    display:block;
+  }
+  .spinner{
+    display:inline-block;
+    width:16px; height:16px;
+    border: 2px solid rgba(138,98,68,0.25);
+    border-top-color: var(--rose-dark);
+    border-radius:50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right:8px;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin: 22px 0 6px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .divider::before, .divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--border);
+  }
 </style>
 </head>
 <body>
@@ -120,6 +176,21 @@
     <h1>Nuova Richiesta Instagram</h1>
     <p>Le Gioie di Giuliana Paganoni</p>
   </header>
+
+  <div class="card">
+    <h2>📷 Carica uno screenshot</h2>
+    <p class="subtitle">Carica la foto della chat Instagram: proviamo a leggerla automaticamente e a compilare i campi qui sotto.</p>
+    <label class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="icon">📎</div>
+      <div class="label">Tocca per scegliere lo screenshot</div>
+      <div class="sub">JPG o PNG</div>
+    </label>
+    <img id="previewImg" class="preview-img" style="display:none;">
+    <div class="msg" id="aiMsg"></div>
+  </div>
+
+  <div class="divider">oppure compila a mano</div>
 
   <div class="card">
     <form id="orderForm">
@@ -148,12 +219,13 @@
   </div>
 
   <footer>
-    <span>Il riepilogo ordini sarà disponibile qui a breve.</span>
+    <a href="riepilogo.html">📋 Vai al riepilogo ordini →</a>
   </footer>
 </div>
 
 <script>
   const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/28495835/46qpy97/";
+  const AI_URL = "https://lucky-wildflower-a0ca.tommaso-galdino99.workers.dev/";
 
   const CATALOG = [
     "Anelli in cammeo e caucciù",
@@ -202,13 +274,19 @@
   });
 
   let tipoScelto = "Ordine confermato";
-  document.querySelectorAll(".type-toggle button").forEach(btn => {
+  const toggleButtons = document.querySelectorAll(".type-toggle button");
+  toggleButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".type-toggle button").forEach(b => b.classList.remove("active"));
+      toggleButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       tipoScelto = btn.dataset.value;
     });
   });
+
+  function setTipo(value){
+    tipoScelto = value;
+    toggleButtons.forEach(b => b.classList.toggle("active", b.dataset.value === value));
+  }
 
   function formatDataItaliana(d){
     const gg = String(d.getDate()).padStart(2,"0");
@@ -217,6 +295,89 @@
     return `${gg}/${mm}/${aaaa}`;
   }
 
+  // ---- Upload screenshot + lettura AI ----
+  const fileInput = document.getElementById("fileInput");
+  const previewImg = document.getElementById("previewImg");
+  const aiMsg = document.getElementById("aiMsg");
+  const uploadZone = document.getElementById("uploadZone");
+
+  function showAiMsg(text, type){
+    aiMsg.textContent = text;
+    aiMsg.className = "msg " + type + " show";
+  }
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        const base64 = result.substring(result.indexOf(",") + 1);
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function findBestProductMatch(nome){
+    if(!nome) return null;
+    const exact = CATALOG.find(c => c.toLowerCase() === nome.toLowerCase());
+    if(exact) return exact;
+    const partial = CATALOG.find(c => c.toLowerCase().includes(nome.toLowerCase()) || nome.toLowerCase().includes(c.toLowerCase()));
+    if(partial) return partial;
+    return null;
+  }
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if(!file) return;
+
+    previewImg.src = URL.createObjectURL(file);
+    previewImg.style.display = "block";
+
+    aiMsg.innerHTML = '<span class="spinner"></span>Sto leggendo lo screenshot…';
+    aiMsg.className = "msg info show";
+
+    try{
+      const base64 = await fileToBase64(file);
+      const res = await fetch(AI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mediaType: file.type || "image/jpeg",
+          catalog: CATALOG
+        })
+      });
+
+      const data = await res.json();
+
+      if(!res.ok || data.error){
+        showAiMsg("⚠️ Non sono riuscita a leggere lo screenshot automaticamente. Compila i campi qui sotto a mano.", "error");
+        return;
+      }
+
+      if(data.cliente) document.getElementById("cliente").value = data.cliente;
+      if(data.testo) document.getElementById("testo").value = data.testo;
+
+      const match = findBestProductMatch(data.prodotto);
+      if(match){
+        select.value = match;
+      } else if (data.prodotto) {
+        select.value = "Altro (scrivi nel testo)";
+      }
+
+      if(data.tipo === "Richiesta info" || data.tipo === "Ordine confermato"){
+        setTipo(data.tipo);
+      }
+
+      showAiMsg("✅ Campi precompilati! Controlla che siano giusti prima di salvare.", "success");
+    } catch(err){
+      showAiMsg("⚠️ Errore durante la lettura dello screenshot. Compila i campi qui sotto a mano.", "error");
+    }
+  });
+
+  // ---- Salvataggio richiesta ----
   const form = document.getElementById("orderForm");
   const submitBtn = document.getElementById("submitBtn");
   const msgBox = document.getElementById("msgBox");
@@ -259,9 +420,10 @@
         msgBox.textContent = "✅ Richiesta salvata! Puoi inserirne un'altra.";
         msgBox.className = "msg success show";
         form.reset();
-        document.querySelectorAll(".type-toggle button").forEach(b => b.classList.remove("active"));
-        document.querySelector('.type-toggle button[data-value="Ordine confermato"]').classList.add("active");
-        tipoScelto = "Ordine confermato";
+        setTipo("Ordine confermato");
+        previewImg.style.display = "none";
+        aiMsg.className = "msg";
+        fileInput.value = "";
       } else {
         throw new Error("Risposta non valida dal server");
       }
