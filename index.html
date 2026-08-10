@@ -4,102 +4,144 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Riepilogo Ordini — Le Gioie di Giuliana Paganoni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --rose: #b8895f;
-    --rose-dark: #8a6244;
-    --bg: #fdf8f4;
+    --rose: #b8683f;
+    --rose-dark: #8a4d2e;
+    --rose-light: #f3e3d6;
+    --bg: #fbf6f1;
     --card: #ffffff;
-    --text: #3a2f28;
-    --muted: #8a7c72;
-    --border: #e8ddd2;
-    --success: #4b7a4f;
-    --success-bg: #eaf3ea;
-    --warn: #a97b22;
-    --warn-bg: #fbf1de;
-    --error: #a94442;
-    --error-bg: #fbeaea;
+    --text: #2c231d;
+    --muted: #8a7b6d;
+    --border: #ece1d5;
+    --success: #3f7a52;
+    --success-bg: #e7f2e9;
+    --warn: #a06a1a;
+    --warn-bg: #fbf0dc;
+    --error: #b23b2e;
+    --error-bg: #fbeae7;
     --info: #6a5a9e;
     --info-bg: #efeafb;
+    --shadow-sm: 0 1px 3px rgba(44,35,29,0.06);
+    --shadow-md: 0 6px 20px rgba(138,77,46,0.08);
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
   }
   * { box-sizing: border-box; }
+  html{ -webkit-text-size-adjust: 100%; }
   body{
     margin:0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 24px 16px 60px;
+    padding: 28px 18px 70px;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap{ width:100%; max-width: 780px; margin: 0 auto; }
+  .wrap{ width:100%; max-width: 800px; margin: 0 auto; }
+  a{ color: inherit; }
+
   header{
     display:flex;
     justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    margin-bottom: 20px;
+    align-items:flex-end;
+    gap:16px;
+    margin-bottom: 26px;
     flex-wrap: wrap;
   }
   header h1{
-    font-size: 22px;
-    margin: 0 0 4px;
-    color: var(--rose-dark);
+    font-family: "Cormorant", serif;
+    font-size: 30px;
     font-weight: 700;
+    margin: 0 0 2px;
+    color: var(--rose-dark);
+    letter-spacing: 0.2px;
   }
-  header p{ margin:0; color: var(--muted); font-size: 14px; }
-  .new-btn{
+  header p{ margin:0; color: var(--muted); font-size: 13.5px; letter-spacing: 0.3px; text-transform: uppercase; }
+
+  .btn{
     display:inline-flex;
     align-items:center;
-    gap:6px;
-    padding: 12px 18px;
-    border-radius: 12px;
+    gap:8px;
+    border:none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .18s ease, border-color .18s ease, transform .1s ease, color .18s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn svg{ width:16px; height:16px; flex-shrink:0; }
+
+  .new-btn{
+    padding: 13px 20px;
     background: var(--rose);
     color:#fff;
-    font-weight:700;
     font-size: 14px;
     text-decoration:none;
     white-space:nowrap;
-    box-shadow: 0 3px 10px rgba(138,98,68,0.25);
+    box-shadow: var(--shadow-md);
   }
-  .new-btn:active{ background: var(--rose-dark); }
+  .new-btn:hover{ background: var(--rose-dark); }
 
   .stats{
     display:grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 22px;
   }
   .stat{
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 10px;
+    border-radius: var(--radius-md);
+    padding: 16px 12px;
     text-align:center;
+    box-shadow: var(--shadow-sm);
   }
-  .stat .num{ font-size: 22px; font-weight:800; color: var(--rose-dark); }
-  .stat .lbl{ font-size: 12px; color: var(--muted); margin-top:2px; }
+  .stat .num{ font-family:"Cormorant", serif; font-size: 28px; font-weight:700; color: var(--rose-dark); line-height:1; }
+  .stat .lbl{ font-size: 11.5px; color: var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:0.4px; }
 
   .toolbar{
     display:flex;
     gap:10px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
   }
-  .toolbar input[type="text"]{
+  .search-box{
     flex:1;
-    min-width: 160px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
+    min-width: 180px;
+    position:relative;
+  }
+  .search-box svg{
+    position:absolute;
+    left:14px; top:50%;
+    transform:translateY(-50%);
+    width:17px; height:17px;
+    color: var(--muted);
+    pointer-events:none;
+  }
+  .search-box input[type="text"]{
+    width:100%;
+    padding: 12px 14px 12px 40px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
     font-size: 15px;
     font-family: inherit;
+    background:#fff;
+    color: var(--text);
   }
-  .toolbar input:focus{ outline:none; border-color: var(--rose); }
-  .chip-group{ display:flex; gap:8px; flex-wrap: wrap; }
+  .search-box input:focus{ outline:none; border-color: var(--rose); }
+  .search-box input::placeholder{ color: var(--muted); }
+
+  .chip-group{ display:flex; gap:8px; flex-wrap: wrap; margin-bottom:20px; }
   .chip{
-    padding: 10px 14px;
+    padding: 9px 15px;
     border-radius: 999px;
-    border: 2px solid var(--border);
+    border: 1.5px solid var(--border);
     background:#fff;
     font-size: 13px;
     font-weight:600;
@@ -107,78 +149,123 @@
     cursor:pointer;
     white-space: nowrap;
     transition: border-color .15s, background .15s, color .15s;
+    font-family: inherit;
   }
   .chip.active{
     border-color: var(--rose);
-    background: #fbeee2;
+    background: var(--rose-light);
     color: var(--rose-dark);
   }
+  .chip:hover:not(.active){ border-color: #d8c6b4; }
 
   .order-card{
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 18px 20px;
     margin-bottom: 12px;
-    box-shadow: 0 2px 12px rgba(138,98,68,0.06);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s ease;
   }
-  .order-card.evaso{ opacity: 0.6; }
+  .order-card:hover{ box-shadow: var(--shadow-md); }
+  .order-card.evaso{ opacity: 0.62; }
   .order-top{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
     gap: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
-  .order-cliente{ font-size: 17px; font-weight:700; color: var(--text); }
-  .order-data{ font-size: 12px; color: var(--muted); margin-top:2px; }
+  .order-cliente{ font-family:"Cormorant", serif; font-size: 20px; font-weight:700; color: var(--text); }
+  .order-meta{ display:flex; align-items:center; gap:6px; font-size: 12px; color: var(--muted); margin-top:3px; }
+  .source-dot{ width:6px; height:6px; border-radius:50%; background: var(--muted); display:inline-block; }
+  .source-dot.instagram{ background: linear-gradient(45deg,#f09433,#dc2743,#bc1888); }
+  .source-dot.shopify{ background: #95bf47; }
+
   .badge{
-    display:inline-block;
-    padding: 5px 10px;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding: 5px 11px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight:700;
     white-space: nowrap;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
   }
+  .badge svg{ width:12px; height:12px; }
   .badge.confermato{ background: var(--success-bg); color: var(--success); }
   .badge.info{ background: var(--info-bg); color: var(--info); }
   .badge.evaso-si{ background: var(--success-bg); color: var(--success); }
   .badge.evaso-no{ background: var(--warn-bg); color: var(--warn); }
 
-  .order-prodotti{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 8px; }
+  .order-prodotti{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px; }
   .prodotto-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
     font-size: 13px;
     font-weight:600;
     color: var(--rose-dark);
-    background: #fbeee2;
+    background: var(--rose-light);
     border-radius: 999px;
-    padding: 4px 10px;
+    padding: 5px 12px;
   }
+  .prodotto-chip svg{ width:13px; height:13px; flex-shrink:0; }
   .order-testo{
     font-size: 14px;
     color: var(--text);
-    background: #faf6f2;
-    border-radius: 10px;
-    padding: 10px 12px;
+    background: #faf5f0;
+    border-radius: var(--radius-sm);
+    padding: 11px 13px;
     white-space: pre-wrap;
+    line-height:1.5;
   }
   .order-footer{
     display:flex;
-    justify-content: flex-end;
-    margin-top: 10px;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 12px;
+    gap:10px;
   }
+  .order-actions{ display:flex; gap:8px; }
+
+  .action-btn{
+    border: 1.5px solid var(--border);
+    background:#fff;
+    font-weight:700;
+    font-size: 12px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    font-family: inherit;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    transition: border-color .15s, background .15s, color .15s;
+  }
+  .action-btn svg{ width:13px; height:13px; }
+  .action-btn.evadi{ color: var(--rose-dark); }
+  .action-btn.evadi:hover{ border-color: var(--rose); }
+  .action-btn.elimina{ color: var(--error); }
+  .action-btn.elimina:hover{ border-color: var(--error); background: var(--error-bg); }
+  .action-btn:disabled{ opacity:.5; cursor:default; }
 
   .empty, .loading, .error{
     text-align:center;
-    padding: 40px 20px;
+    padding: 50px 20px;
     color: var(--muted);
     font-size: 15px;
   }
+  .empty svg, .error svg{ width:34px; height:34px; color: var(--border); margin-bottom:10px; }
   .empty .cta{
-    display:inline-block;
-    margin-top: 14px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top: 16px;
     padding: 12px 20px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     background: var(--rose);
     color:#fff;
     font-weight:700;
@@ -186,51 +273,49 @@
     font-size: 14px;
   }
   .error{ color: var(--error); }
+  .error svg{ color: var(--error); opacity:0.5; }
   .error .retry{
-    display:inline-block;
-    margin-top: 12px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top: 14px;
     padding: 10px 18px;
-    border-radius: 10px;
-    border: 2px solid var(--error);
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--error);
     background: transparent;
     color: var(--error);
     font-weight:700;
     cursor:pointer;
     font-size: 14px;
+    font-family: inherit;
   }
   .spinner{
     display:inline-block;
-    width:22px; height:22px;
-    border: 3px solid rgba(138,98,68,0.2);
+    width:24px; height:24px;
+    border: 3px solid rgba(138,77,46,0.18);
     border-top-color: var(--rose-dark);
     border-radius:50%;
     animation: spin 0.8s linear infinite;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
-  .evaso-btn{
-    border: 2px solid var(--border);
-    background:#fff;
-    color: var(--rose-dark);
-    font-weight:700;
-    font-size: 12px;
-    padding: 7px 12px;
-    border-radius: 999px;
-    cursor:pointer;
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
-  .evaso-btn:hover{ border-color: var(--rose); }
-  .evaso-btn:disabled{ opacity:.5; cursor:default; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>📋 Riepilogo Ordini</h1>
+      <h1>Riepilogo Ordini</h1>
       <p>Le Gioie di Giuliana Paganoni</p>
     </div>
-    <a class="new-btn" href="nuovo.html">＋ Nuova richiesta</a>
+    <a class="btn new-btn" href="nuovo.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuova richiesta
+    </a>
   </header>
 
   <div class="stats" id="stats" style="display:none;">
@@ -240,9 +325,12 @@
   </div>
 
   <div class="toolbar">
-    <input type="text" id="searchBox" placeholder="🔍 Cerca cliente o prodotto...">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchBox" placeholder="Cerca cliente o prodotto…">
+    </div>
   </div>
-  <div class="chip-group" style="margin-bottom:18px;">
+  <div class="chip-group">
     <div class="chip active" data-filter="tutti">Tutti</div>
     <div class="chip" data-filter="da-evadere">Da evadere</div>
     <div class="chip" data-filter="evasi">Evasi</div>
@@ -259,8 +347,20 @@
   // ID verificato: 1ltcYqLz39b3zSP4FeCAdvhnfwVMeKZpB6YDTft0Ye1c (lowercase "e" in VMeK)
 
   // Da compilare dopo il deploy dell'Apps Script (vedi apps-script.gs) — URL che finisce in /exec.
-  // Finché resta vuoto, il pulsante "Segna come spedito" spiega cosa manca invece di fallire silenziosamente.
-  const APPS_SCRIPT_URL = "";
+  // Finché resta vuoto, i bottoni "Evadi"/"Elimina" spiegano cosa manca invece di fallire silenziosamente.
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbZPOrdKLN7V2ms7a9U8EbDb_XTGF4fgkYX9oFHtA1IgCsQrlrO7oKNC5TKTxKkIq_Tg/exec";
+
+  const ICONS = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+    chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
+    tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l5.59-5.59a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+    box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+    inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>'
+  };
 
   function parseCSV(text){
     const rows = [];
@@ -330,18 +430,18 @@
       return true;
     });
 
-    // Più recenti prima (assumendo ordine di inserimento nello sheet). Teniamo l'indice originale
-    // per poter aggiornare allOrders[originalIndex] dopo un "segna come spedito" riuscito.
+    // Più recenti prima. Teniamo l'indice originale per poter aggiornare/rimuovere
+    // allOrders[originalIndex] dopo un'azione riuscita (evadi/elimina).
     filtered = filtered
-      .map((o, idxInFiltered) => ({ o, origIndex: allOrders.indexOf(o) }))
+      .map(o => ({ o, origIndex: allOrders.indexOf(o) }))
       .slice()
       .reverse();
 
     if(filtered.length === 0){
       const isEmptyDb = allOrders.length === 0;
       content.innerHTML = isEmptyDb
-        ? '<div class="empty">Nessun ordine ancora registrato.<br><a class="cta" href="nuovo.html">＋ Registra la prima richiesta</a></div>'
-        : '<div class="empty">Nessun ordine trovato con questi filtri.</div>';
+        ? `<div class="empty">${ICONS.inbox}<br>Nessun ordine ancora registrato.<br><a class="cta" href="nuovo.html">${ICONS.check.replace('stroke-width="2.4"','stroke-width="3"')} Registra la prima richiesta</a></div>`
+        : `<div class="empty">${ICONS.inbox}<br>Nessun ordine trovato con questi filtri.</div>`;
       return;
     }
 
@@ -349,84 +449,125 @@
       const isEvaso = (o.Evaso || "").toLowerCase() === "si" || (o.Evaso || "").toLowerCase() === "sì";
       const isInfo = (o.Tipo || "") === "Richiesta info";
       const tipoBadgeClass = isInfo ? "info" : "confermato";
-      const tipoLabel = isInfo ? "💬 Richiesta info" : "✅ Ordine confermato";
+      const tipoLabel = isInfo ? ICONS.chat + " Richiesta info" : ICONS.check + " Ordine confermato";
       const evasoBadgeClass = isEvaso ? "evaso-si" : "evaso-no";
-      const evasoLabel = isEvaso ? "✔ Evaso" : "⏳ Da evadere";
+      const evasoLabel = isEvaso ? ICONS.check + " Evaso" : ICONS.clock + " Da evadere";
       const prodotti = splitProdotti(o.Prodotto);
+      const fonte = (o.Fonte || "").trim();
+      const fonteClass = fonte.toLowerCase() === "shopify" ? "shopify" : (fonte.toLowerCase() === "instagram" ? "instagram" : "");
 
       return `
         <div class="order-card ${isEvaso ? 'evaso' : ''}">
           <div class="order-top">
             <div>
               <div class="order-cliente">${escapeHtml(o.Cliente || "Sconosciuto")}</div>
-              <div class="order-data">${escapeHtml(o.Data || "")} · ${escapeHtml(o.Fonte || "")}</div>
+              <div class="order-meta">${escapeHtml(o.Data || "")} <span class="source-dot ${fonteClass}"></span> ${escapeHtml(fonte || "—")}</div>
             </div>
             <span class="badge ${tipoBadgeClass}">${tipoLabel}</span>
           </div>
           <div class="order-prodotti">
             ${prodotti.length
-              ? prodotti.map(p => `<span class="prodotto-chip">🛍️ ${escapeHtml(p)}</span>`).join("")
-              : `<span class="prodotto-chip">🛍️ -</span>`}
+              ? prodotti.map(p => `<span class="prodotto-chip">${ICONS.tag}${escapeHtml(p)}</span>`).join("")
+              : `<span class="prodotto-chip">${ICONS.tag}-</span>`}
           </div>
           ${o.TestoOriginale ? `<div class="order-testo">${escapeHtml(o.TestoOriginale)}</div>` : ""}
           <div class="order-footer">
             <span class="badge ${evasoBadgeClass}">${evasoLabel}</span>
-            ${!isEvaso ? `<button class="evaso-btn" data-orig-index="${origIndex}">✔ Segna come spedito</button>` : ""}
+            <div class="order-actions">
+              ${!isEvaso ? `<button class="action-btn evadi" data-orig-index="${origIndex}" data-action="evadi">${ICONS.check} Segna spedito</button>` : ""}
+              <button class="action-btn elimina" data-orig-index="${origIndex}" data-action="elimina">${ICONS.trash} Elimina</button>
+            </div>
           </div>
         </div>
       `;
     }).join("");
 
-    content.querySelectorAll(".evaso-btn").forEach(btn => {
-      btn.addEventListener("click", () => markEvaso(Number(btn.dataset.origIndex), btn));
+    content.querySelectorAll(".action-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.origIndex);
+        if(btn.dataset.action === "elimina") deleteOrder(idx, btn);
+        else markEvaso(idx, btn);
+      });
+    });
+  }
+
+  function checkAppsScriptConfigured(){
+    if(!APPS_SCRIPT_URL){
+      alert("Funzione non ancora attiva: manca l'URL dell'Apps Script (vedi apps-script.gs e istruzioni di deploy). Chiedi a Tommaso di completare il collegamento.");
+      return false;
+    }
+    return true;
+  }
+
+  async function callAppsScript(o, action){
+    return fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      // text/plain evita il preflight CORS, stesso trucco usato per Zapier.
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        data: o.Data,
+        cliente: o.Cliente,
+        prodotto: o.Prodotto,
+        testo: o.TestoOriginale,
+        action
+      })
     });
   }
 
   async function markEvaso(origIndex, btnEl){
     const o = allOrders[origIndex];
-    if(!o) return;
-
-    if(!APPS_SCRIPT_URL){
-      alert("Funzione non ancora attiva: manca l'URL dell'Apps Script (vedi apps-script.gs e istruzioni di deploy). Chiedi a Tommaso di completare il collegamento.");
-      return;
-    }
+    if(!o || !checkAppsScriptConfigured()) return;
 
     btnEl.disabled = true;
-    btnEl.textContent = "Salvo…";
+    btnEl.innerHTML = "Salvo…";
 
     try{
-      // text/plain evita il preflight CORS, stesso trucco usato per Zapier.
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({
-          data: o.Data,
-          cliente: o.Cliente,
-          prodotto: o.Prodotto,
-          testo: o.TestoOriginale,
-          evaso: true
-        })
-      });
-
-      let result;
-      try{ result = await res.json(); } catch(e){ result = null; }
+      const res = await callAppsScript(o, "evadi");
+      let result; try{ result = await res.json(); } catch(e){ result = null; }
 
       if(!res.ok || !result || result.error){
         const detail = result && result.error ? ` (${result.error})` : "";
         alert("Non sono riuscita ad aggiornare il foglio" + detail + ". Riprova o aggiorna a mano su Google Sheet.");
-        btnEl.disabled = false;
-        btnEl.textContent = "✔ Segna come spedito";
+        render();
         return;
       }
 
-      // Aggiornamento ottimistico locale, evita di rifare tutto il fetch CSV.
       allOrders[origIndex] = { ...o, Evaso: "Si" };
       updateStats();
       render();
     } catch(err){
       alert("Errore di connessione. Riprova.");
-      btnEl.disabled = false;
-      btnEl.textContent = "✔ Segna come spedito";
+      render();
+    }
+  }
+
+  async function deleteOrder(origIndex, btnEl){
+    const o = allOrders[origIndex];
+    if(!o || !checkAppsScriptConfigured()) return;
+
+    const ok = confirm(`Eliminare definitivamente l'ordine di "${o.Cliente}"?\n\nQuesta azione non si può annullare.`);
+    if(!ok) return;
+
+    btnEl.disabled = true;
+    btnEl.innerHTML = "Elimino…";
+
+    try{
+      const res = await callAppsScript(o, "elimina");
+      let result; try{ result = await res.json(); } catch(e){ result = null; }
+
+      if(!res.ok || !result || result.error){
+        const detail = result && result.error ? ` (${result.error})` : "";
+        alert("Non sono riuscita a eliminare la riga" + detail + ". Riprova o cancellala a mano su Google Sheet.");
+        render();
+        return;
+      }
+
+      allOrders.splice(origIndex, 1);
+      updateStats();
+      render();
+    } catch(err){
+      alert("Errore di connessione. Riprova.");
+      render();
     }
   }
 
@@ -478,7 +619,7 @@
 
   async function loadOrders(){
     document.getElementById("content").innerHTML =
-      '<div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>';
+      `<div class="loading"><div class="spinner"></div><br>Carico gli ordini…</div>`;
     try{
       const text = await fetchCSVWithRetry(4);
       const rows = parseCSV(text);
@@ -487,7 +628,7 @@
       render();
     } catch(err){
       document.getElementById("content").innerHTML =
-        '<div class="error">⚠️ Non riesco a caricare gli ordini in questo momento.<br>Controlla la connessione e riprova.<br><button class="retry" onclick="loadOrders()">Riprova</button></div>';
+        `<div class="error">${ICONS.alert}<br>Non riesco a caricare gli ordini in questo momento.<br>Controlla la connessione e riprova.<br><button class="retry" onclick="loadOrders()">${ICONS.refresh} Riprova</button></div>`;
     }
   }
 
