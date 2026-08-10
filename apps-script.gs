@@ -70,9 +70,17 @@ function handleList(p) {
   }
 
   const headers = values[0].map(h => String(h).trim());
+  const tz = Session.getScriptTimeZone();
   const orders = values.slice(1).map(row => {
     const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i] === undefined || row[i] === null ? "" : String(row[i]).trim(); });
+    headers.forEach((h, i) => {
+      const v = row[i];
+      if (v === undefined || v === null) { obj[h] = ""; }
+      // Google Sheets restituisce le celle data come oggetti Date reali (non testo) —
+      // vanno formattate esplicitamente, altrimenti arriva la stringa tecnica JS lunga.
+      else if (v instanceof Date) { obj[h] = Utilities.formatDate(v, tz, "dd/MM/yyyy"); }
+      else { obj[h] = String(v).trim(); }
+    });
     return obj;
   });
 
@@ -112,11 +120,18 @@ function handleRequest(p) {
     const idxProdotto = headers.indexOf("Prodotto");
     const idxTesto = headers.indexOf("TestoOriginale");
     const idxEvaso = headers.indexOf(COL_EVASO);
+    const tz = Session.getScriptTimeZone();
+
+    function cellAsText(v) {
+      if (v === undefined || v === null) return "";
+      if (v instanceof Date) return Utilities.formatDate(v, tz, "dd/MM/yyyy");
+      return String(v).trim();
+    }
 
     let rowIndex = -1;
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      const matchData = String(row[idxData]).trim() === String(data).trim();
+      const matchData = cellAsText(row[idxData]) === String(data).trim();
       const matchCliente = String(row[idxCliente]).trim() === String(cliente).trim();
       const matchProdotto = idxProdotto === -1 || String(row[idxProdotto]).trim() === String(prodotto || "").trim();
       const matchTesto = idxTesto === -1 || String(row[idxTesto]).trim() === String(testo || "").trim();
